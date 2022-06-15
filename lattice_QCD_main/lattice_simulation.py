@@ -96,7 +96,17 @@ def plaquette_specular(mu,nu, x,link):
     return np.absolute((1/3)*np.real(np.trace(staple)))
     #g.printing_matrix(np.dot(staple,np.transpose(np.conjugate(staple))))
     
-def S(nu,x,link):  ###works 0.51 axa and 0.267 ax2a
+def S(nu,x,link):  ###works better 0.48 and acceptance rate 0.45/0.50
+    a = 0
+    for deltanu in range(0,3-nu):
+        deltanu = deltanu + 1
+        a = a +  plaquette(nu+deltanu,nu, movedown(x,nu+deltanu),link)
+    for deltanu in range(0,nu):
+        deltanu = deltanu+1
+        a = a + plaquette(nu,nu-deltanu,x,link)
+    return -beta*a
+
+def S_p(nu,x,link):  ###works 0.51 axa and 0.267 ax2a
     a = 0
     for deltanu in range(0,3-nu):
         deltanu = deltanu + 1
@@ -133,11 +143,11 @@ def update(link):     #### change rate 0.4 with eps = 0.24
                        # R = g.random_matrices()[I]
                         link[i][j][k][l][d] = np.dot(R[I],link[i][j][k][l][d])
                         dS = S(d,x,link)-old_S
-                        tot += 1
+                        tot = tot + 1
                         if dS>0 and math.exp(-dS)<r.uniform(0,1):
                             link[i][j][k][l][d] = oldlink[i][j][k][l][d]
-                            c += 1
-    return c/tot
+                            c = c+ 1
+    return 1-c/tot
 def compute(link):
     x = [0]*4
     loop = 0
@@ -146,21 +156,24 @@ def compute(link):
             for k in range(0,N):
                 for l in range(0,N):
                     x = [i,j,k,l]
-                    for nu  in range(0,4):
-                        for mu in range(nu+1,4):
-                            loop += plaquette(mu,nu,x,link)
-    return loop/(N*N*N*N*6)
-x = [0,1,3,1]
+                    for mu  in range(0,4):
+                        for dperp in range(0,3):
+                            if (dperp != mu):
+                                loop =  loop + wilson_loop_2aa(dperp,mu,x,link)
+    return loop/(N*N*N*N*12)
+x = [0,0,3,1]
 def MCaverage(link):
     plaquette_avg = [0]*N_cf
     for i in range(0,50): ###thermalization
         print(("%f" % i))
-        update(link)
+        print("%f" % update(link))
+        
     for alpha in range(0,N_cf):
         print("%f" % alpha)
         for j in range(0,N_cor):
             update(link)
-        plaquette_avg[alpha] = wilson_loop_2aa(0,1,x,link)
+           
+        plaquette_avg[alpha] = wilson_loop_2aa(1,2,x,link)
     return plaquette_avg
 
 
@@ -186,10 +199,10 @@ def MCaverage(link):
 link = initialize_links()
 loop_average_array = MCaverage(link)
 f =0
-for i in range(0,20):
+for i in range(0,N_cf):
     f += loop_average_array[i]
     #print("%f" % loop_average_array[i])
-f = f/20
+f = f/N_cf
 
 
 print("%f" % f)
