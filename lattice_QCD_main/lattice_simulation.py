@@ -1,4 +1,8 @@
 #########################################################################################
+#simulation of the lattice, S_new is the action of the eq. 114 while S_new_improved is based on eq. 103
+#S is the previous action I have used which still gives good results.
+#In  S_new I have used plaquette_new as method for computing loops, here I am using the convention of 0506036. 
+#
 
 
 
@@ -20,7 +24,7 @@ N = 4
 
 N_cor = 20
 N_cf = 100
- ###question here
+ 
 #link = [[[[[0]*N]*N]*N]*N]*4
 #@njit
 def initialize_links():
@@ -240,4 +244,4 @@ print("%f" % f)
 #print("%f" % update(link))
 #g.printing_matrix(link[3][4][6][2][2])
 
-########idea save after 50 update and start from it, themralization only one time
+#######
