@@ -19,6 +19,7 @@ import numba
 test = False
 test_rate = False
 test_potential = False
+test_W = False
 ######define properties of lattice
 beta = 5.5
 u0 = 0.797
@@ -186,7 +187,7 @@ def compute(link): #sum all the plaquettes in the lattice and then averaging
 
 def compute_V(link,m): #compute the potential between two static quarks at distance m*a along the x axis
     x_zero = [0,0,0,0]
-    return aV(x_zero,link,m)
+    return abs(aV(x_zero,link,m))
 
 ################################################################################
 #methods for computing smeared potential
@@ -269,22 +270,37 @@ def W(x,link,n,m):   #W(x,t) = W(ma,na)
     staple = np.identity(3)
     for i in range(0,n):
         staple = np.dot(staple, link[x[0]][x[1]][x[2]][x[3]][0])
-        x = moveup(x,0)    
+        x = moveup(x,0)
+        if test_W:
+            print("%f %f %f %f" % (x[0], x[1], x[2], x[3]))
     for j in range(0,m):
         staple = np.dot(staple, link[x[0]][x[1]][x[2]][x[3]][1])
         x = moveup(x,1)
+        if test_W:
+            print("%f %f %f %f" % (x[0], x[1], x[2], x[3]))
+   
     for k in range(0,n):
         x = movedown(x,0)
         staple = np.dot(staple, np.conjugate(link[x[0]][x[1]][x[2]][x[3]][0]))
-    
+        if test_W:
+            print("%f %f %f %f" % (x[0], x[1], x[2], x[3]))
+   
     for l in range(0,m):
         x = movedown(x,1)
         staple = np.dot(staple, np.conjugate(link[x[0]][x[1]][x[2]][x[3]][1]))
+        if test_W:
+            print("%f %f %f %f" % (x[0], x[1], x[2], x[3]))
+    if test_W:
+        print("Test plaquette:")
+        g.printing_matrix(staple)
+        print("Test Unitarity:")
+        g.printing_matrix(np.dot(staple,np.transpose(np.conjugate(staple))))
+        print("trace: %f" % np.trace(staple))
     return (1/3)*(np.trace(staple))
 
 
 def aV(x,link,m):
-    return W(x,link,2,m)/W(x,link,3,m)
+    return W(x,link,6,m)/W(x,link,7,m)
 
 def W_smeared(x,link,n,m):   #W(x,t) = W(ma,na)
     staple = smeared(0,x,link,0.08,4)
